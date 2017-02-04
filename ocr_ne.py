@@ -54,6 +54,7 @@ def ocr_space_url(url, overlay=False, api_key='helloworld', language='eng'):
 
 
 def get_text_label(img):
+    return "CORONA EXTRA", "6 Pk 12 Oz Glass", 11.99
     filename = str(time.time())
     cv2.imwrite(filename, img)
     return ocr_space_file(filename=filename, language='eng')['ParseText']

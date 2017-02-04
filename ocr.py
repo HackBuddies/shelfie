@@ -22,7 +22,7 @@ print("Will use lang '%s'" % (lang))
 # to use.
 
 
-img_fname = "labels/001.jpg"
+img_fname = "labels/019.jpg"
 
 txt = tool.image_to_string(
     Image.open(img_fname),
@@ -58,11 +58,11 @@ word_boxes = tool.image_to_string(
 # may return empty boxes
 
 # Digits - Only Tesseract (not 'libtesseract' yet !)
-digits = tool.image_to_string(
-    Image.open(img_fname),
-    lang=lang,
-    builder=pyocr.tesseract.DigitBuilder()
-)
-
-print(digits)
+# digits = tool.image_to_string(
+#     Image.open(img_fname),
+#     lang=lang,
+#     builder=pyocr.tesseract.DigitBuilder()
+# )
+#
+# print(digits)
 # digits is a python string

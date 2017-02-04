@@ -6,6 +6,7 @@ import ocr_ne
 
 MAX_DIFF_HEIGHT = 40
 TRUTH_DIR = "truth"
+TRAINING_LABEL_FILE = 'images/label/label.jpg'
 
 
 def get_files(dir_name):
@@ -22,13 +23,6 @@ def manhattan(pixel1, pixel2):
 
 
 def get_heights(lines):
-    # TODO: the guys
-    """
-    returns the heights of the middle two rows sorted in ascending
-    :param real_pts:
-    :param template_height:
-    :return:
-    """
     heights = [0]
     for line in lines:
         avg_height = sum([pt[1] for pt in line]) / len(line)
@@ -65,12 +59,21 @@ def get_matches(big_file_path, label_path):
     for pt in real_pts:
         cv2.rectangle(img_rgb, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
         segment_img = img_rgb[pt[1]:pt[1] + h, pt[0]:pt[0] + w]
-        cv2.imwrite('labels/' + "%03d.jpg" % ctr, segment_img)
+        # cv2.imwrite('labels/' + "%03d.jpg" % ctr, segment_img)
         ctr += 1
 
-    cv2.imwrite('res/' + big_file_path, img_rgb)
+    # cv2.imwrite('res/' + big_file_path, img_rgb)
 
     return real_pts
+
+
+def get_labels(big_file, training_label):
+    pts = get_matches(big_file, training_label)
+    img_rgb = cv2.imread(big_file)
+    template = cv2.imread(training_label, 0)
+    w, h = template.shape[::-1]
+    labels = [img_rgb[pt[1]:pt[1] + h, pt[0]:pt[0] + w] for pt in pts]
+    return labels
 
 
 def get_horizontal_lines(real_pts, label_height, label_width, big_img_width):
@@ -146,7 +149,7 @@ def get_truth_images():
     return [cv2.imread(fname) for fname in get_files(TRUTH_DIR)]
 
 
-def map_segmented_images_to_truth():
+def get_real_name_label_name():
     pass
 
 
@@ -177,17 +180,17 @@ def test_labelling_accuracy():
     count_dict = {}
     files = get_files("images")
     for f, index in zip(files, range(len(files))):
-        real_pts = get_matches(f, 'images/label/label.jpg')
+        real_pts = get_matches(f, TRAINING_LABEL_FILE)
         match_count = len(real_pts)
         if match_count != 22:
             print(f)
         count_dict[match_count] = count_dict.get(match_count, 0)
         print(count_dict)
-        # write_segmented_images(f, 'images/label/label.jpg', index)
+        # write_segmented_images(f, TRAINING_LABEL_FILE, index)
 
 
 def main():
-    group_related_images('images/label/label.jpg')
+    test_labelling_accuracy()
 
 
 if __name__ == '__main__':
