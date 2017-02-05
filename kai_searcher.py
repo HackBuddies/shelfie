@@ -2,15 +2,21 @@ import cv2, random
 import numpy as np
 from os import listdir
 from os.path import isfile, join
-import ocr_ne
 
 MAX_DIFF_HEIGHT = 40
 TRUTH_DIR = "truth"
+IMAGE_DIR = "images"
 TRAINING_LABEL_FILE = 'images/label/label.jpg'
+
+FIRST_PART_HEIGHT = 22
+PARTITION_HEIGHTS = [0, 23, 40, 70]
+
+SPLIT_DIR = "split"
 
 
 def get_files(dir_name):
     files = [join(dir_name, f) for f in listdir(dir_name) if isfile(join(dir_name, f))]
+    files.sort()
     return files
 
 
@@ -32,14 +38,22 @@ def get_heights(lines):
     return heights
 
 
-def get_matches(big_file_path, label_path):
+def get_matches(big_file_path, label_path, threshold=0.28):
     img_rgb = cv2.imread(big_file_path)
+    label_template = cv2.imread(label_path)
+    return get_matches_rgb(img_rgb, label_template, threshold)
+
+
+def get_matches_rgb(img_rgb, img_template, threshold=0.28, gray=True):
     img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
-    template = cv2.imread(label_path, 0)
+    template = cv2.cvtColor(img_template, cv2.COLOR_BGR2GRAY)
     w, h = template.shape[::-1]
 
+    if not gray:
+        img_gray = img_rgb
+        template = img_template
+
     res = cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
-    threshold = 0.28
     min_diff = 50
     loc = np.where(res >= threshold)
     pts = list(zip(*loc[::-1]))
@@ -57,9 +71,9 @@ def get_matches(big_file_path, label_path):
 
     ctr = 0
     for pt in real_pts:
-        cv2.rectangle(img_rgb, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+        # cv2.rectangle(img_rgb, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
         segment_img = img_rgb[pt[1]:pt[1] + h, pt[0]:pt[0] + w]
-        # cv2.imwrite('labels/' + "%03d.jpg" % ctr, segment_img)
+        cv2.imwrite('labels/' + "%03d.jpg" % ctr, segment_img)
         ctr += 1
 
     # cv2.imwrite('res/' + big_file_path, img_rgb)
@@ -74,6 +88,22 @@ def get_labels(big_file, training_label):
     w, h = template.shape[::-1]
     labels = [img_rgb[pt[1]:pt[1] + h, pt[0]:pt[0] + w] for pt in pts]
     return labels
+
+
+def split_write_labels():
+    ctr = 0
+    for big_file in get_files(IMAGE_DIR):
+        labels = get_labels(big_file, TRAINING_LABEL_FILE)
+        for label, index in zip(labels, range(len(labels))):
+            for i in range(len(PARTITION_HEIGHTS) - 1):
+                y1 = PARTITION_HEIGHTS[i]
+                y2 = PARTITION_HEIGHTS[i + 1]
+                split_img = label[y1:y2]
+                cv2.imwrite(
+                    SPLIT_DIR + "/" + str(i) + "/" + big_file.split("/")[-1].split(".")[0] + str(index) + ".jpg",
+                    split_img)
+        ctr += 1
+        print(ctr)
 
 
 def get_horizontal_lines(real_pts, label_height, label_width, big_img_width):
@@ -130,7 +160,8 @@ def get_segment_rects_labels(test_fname, label_fname):
                 if pt1[1] - height > MAX_DIFF_HEIGHT:
                     upper_limit = height
                     break
-            result.append(([(left_border, upper_limit), (right_border, bottom_limit)], mid_pt))
+            result.append(([(left_border, upper_limit), (right_border, bottom_limit)],
+                           [(mid_pt[0], mid_pt[1]-label_h), (mid_pt[0] + label_w, mid_pt[1])]))
 
     return result
 
@@ -141,12 +172,29 @@ def get_segmented_images_and_labels(test_fname, label_fname):
     imgs = []
     for rectangle, label in rect_labels:
         segment_img = img_rgb[rectangle[0][1]:rectangle[1][1], rectangle[0][0]:rectangle[1][0]]
-        imgs.append([segment_img, label])
+        label_img = img_rgb[label[0][1]:label[1][1], label[0][0]:label[1][0]]
+        imgs.append([segment_img, label_img])
     return imgs
 
 
-def get_truth_images():
-    return [cv2.imread(fname) for fname in get_files(TRUTH_DIR)]
+def get_truth_images_brand_sku():
+    with open(TRUTH_DIR + "/brands", "r") as f:
+        brands = [line.strip() for line in f.readlines()]
+    with open(TRUTH_DIR + "/skus", "r") as f:
+        skus = [line.strip() for line in f.readlines()]
+    return [(cv2.imread(fname), brand, sku) for fname, brand, sku in zip(get_files(TRUTH_DIR), brands, skus)]
+
+
+def get_brand_sku_by_truth(truth_imgs_brand_sku, test_img):
+    threshold = 0.8
+    while True:
+        for img, brand, sku in truth_imgs_brand_sku:
+            if len(test_img) < len(img) or len(test_img[0]) < len(img[0]):
+                continue
+            if len(get_matches_rgb(test_img, img, threshold=threshold, gray=False)) > 0:
+                return brand, sku
+        threshold -= 0.05
+    return "Unknown", "Unknown"
 
 
 def get_real_name_label_name():
@@ -190,7 +238,7 @@ def test_labelling_accuracy():
 
 
 def main():
-    test_labelling_accuracy()
+    print(get_matches("split/0/Supermarket_2015-01-1817.jpg", "split/0/Supermarket_2016-12-2516.jpg", threshold=0.8))
 
 
 if __name__ == '__main__':
