@@ -5,6 +5,7 @@ import ocr_ne
 import pickle
 import collections
 import cv2
+import json
 
 KEY_DATE = "Date"
 KEY_BRAND = "Brand"
@@ -16,6 +17,29 @@ PKL_FILE_MISPLACE = "tasks_misplaced.pkl"
 
 ALERT_PRICE = 1
 ALERT_MISMATCH = 2
+
+
+def get_misprice(date):
+    with open(PKL_FILE_MISPRICE, "rb") as f:
+        alert_dict = pickle.load(f)
+    date = date.strftime("%d/%m/%Y")
+    print(alert_dict)
+    return alert_dict[date]
+
+
+def get_misplace(date):
+    with open(PKL_FILE_MISPLACE, "rb") as f:
+        alert_dict = pickle.load(f)
+    date = date.strftime("%d/%m/%Y")
+    date = str(date)
+    return alert_dict[date]
+
+
+def read_misplace():
+    with open(PKL_FILE_MISPLACE, "rb") as f:
+        m_dict = pickle.load(f)
+    for key in m_dict:
+        print(key, m_dict[key])
 
 
 def get_filename_at_date(date_str):
@@ -115,4 +139,4 @@ def main():
 
 
 if __name__ == '__main__':
-    count_mismatch()
+    read_misplace()

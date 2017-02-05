@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type=text/javascript src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="{{ url_for("static",filename="js/bootstrap.js") }}"></script>
+    <br>
+    <script>
+        function init()
+        {
+            triggers = document.getElementById("triggers");
+            temp = document.getElementById("temp");
+            img = document.getElementById("Shelf");
+            selector = document.getElementById("Date");
+            ocr_table = document.getElementById("OCR");
+            analysis_table = document.getElementById("ana_table");
+        }
+        function new_row(item1,item2,item3,item4)
+        {
+            var tr = document.createElement("tr");
+            var td1 = document.createElement("td");
+            td1.innerHTML = item1;
+            var td2 = document.createElement("td");
+            td2.innerHTML = item2;
+            var td3 = document.createElement("td");
+            td3.innerHTML = item3;
+            var td4 = document.createElement("td");
+            td4.innerHTML = item4;
+            tr.appendChild(td1);
+            tr.appendChild(td2);
+            tr.appendChild(td3);
+            tr.appendChild(td4);
+            return tr;
+        }
+        function populate_ocr(labels)
+        {
+            for(var i in labels)
+            {
+                i = labels[i];
+                ocr_table.appendChild(new_row(i[1],i[2],i[3],i[4]));
+            }
+        }
+        function populate_ana(labels)
+        {
+            for(var i in labels)
+            {
+                i = labels[i];
+                console.log(i);
+                ana_table.appendChild(new_row(i[1],i[2],i[3],i[4]));
+            }
+        }
+        function get_details()
+        {
+            var date = selector.value;
+            var dat_list = date.split("/");
+            var dat= date.split("/").join("");
+            img.src = "http://192.168.200.170:8000/Supermarket_"+dat_list[2]+"-"+dat_list[1]+"-"+dat_list[0]+".jpg";
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET","http://192.168.200.170:9000/"+dat);
+            xhr.onreadystatechange = function(){
+                if(xhr.status == 200 && xhr.readyState == 4)
+                {
+                    var resp = JSON.parse(xhr.responseText);
+                    populate_ocr(resp[0]);
+                     populate_ana(resp[1]);
+
+                }
+            };
+            xhr.send();
+        }
+        function new_trigger(event)
+        {
+            var new_temp = temp.cloneNode(true);
+            new_temp.style.display="inline";
+            triggers.appendChild(new_temp)
+        }
+        function add(event)
+        {
+            var span = event.target.parentNode.parentNode;
+            var ele=span.getElementsByTagName("select");
+            var inp=span.getElementsByTagName("input");
+            var text = "item = "+ele[0].value+" "+ele[1].value+" cost_difference "+ele[2].value+" "+inp[0].value;
+            span.innerText = text;
+            triggers.appendChild(document.createElement("br"));
+        }
+        function ignore(event)
+        {
+            var span = event.target.parentNode.parentNode;
+            triggers.removeChild(span);
+        }
+    </script>
+    <link href="static/css/bootstrap.min.css" rel="stylesheet" media="screen">
+</head>
+<body onload = "init()">
+    <div class="container-fluid">
+        <p class="well well-lg " align="center" style="background-color: orangered;color: white"> Shelfie Dashboard </p>
+    </div>
+    <div class="container-fluid">
+        <div class="col-md-2">
+            <div class="panel panel-primary">
+              <div class="panel-heading" align="center" style="background-color:orangered ">Alert Preferences</div>
+              <div class="panel-body">
+                   <ul id="triggers">
+                       <li>item = "Budlight" and cost_difference>10 </li>
+                   </ul>
+              </div>
+                <button type="button" class="btn btn-default btn-circle" onclick="new_trigger()"><span class="glyphicon glyphicon-plus"></span></button>
+            </div>
+            <div class="panel panel-primary">
+              <div class="panel-heading" align="center" style="background-color:orangered ">Non-compliant Pricing</div>
+              <div class="panel-body">
+                  <table id="OCR" border>
+                      <tr>
+                          <th>BrandName</th>
+                          <th>Quantity</th>
+                          <th>Price Sold At</th>
+                          <th>Recommended Price</th>
+                      </tr>
+                  </table>
+              </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <select onchange="get_details()" id="Date" class="form-control selcls">
+                <option value="22/11/2015">22/11/2015</option>
+<option value="10/04/2016">10/04/2016</option>
+<option value="20/11/2016">20/11/2016</option>
+<option value="4/12/2016">4/12/2016</option>
+<option value="19/06/2016">19/06/2016</option>
+<option value="28/08/2016">28/08/2016</option>
+<option value="14/02/2016">14/02/2016</option>
+<option value="19/04/2015">19/04/2015</option>
+<option value="16/10/2016">16/10/2016</option>
+<option value="20/09/2015">20/09/2015</option>
+<option value="6/09/2015">6/09/2015</option>
+<option value="25/09/2016">25/09/2016</option>
+<option value="25/01/2015">25/01/2015</option>
+<option value="8/02/2015">8/02/2015</option>
+<option value="12/06/2016">12/06/2016</option>
+<option value="3/04/2016">3/04/2016</option>
+<option value="9/10/2016">9/10/2016</option>
+<option value="12/07/2015">12/07/2015</option>
+<option value="18/09/2016">18/09/2016</option>
+<option value="29/05/2016">29/05/2016</option>
+<option value="17/05/2015">17/05/2015</option>
+<option value="31/05/2015">31/05/2015</option>
+<option value="2/10/2016">2/10/2016</option>
+<option value="31/07/2016">31/07/2016</option>
+<option value="20/03/2016">20/03/2016</option>
+<option value="30/10/2016">30/10/2016</option>
+<option value="19/07/2015">19/07/2015</option>
+<option value="14/08/2016">14/08/2016</option>
+<option value="8/03/2015">8/03/2015</option>
+<option value="13/09/2015">13/09/2015</option>
+<option value="4/10/2015">4/10/2015</option>
+<option value="20/12/2015">20/12/2015</option>
+<option value="15/05/2016">15/05/2016</option>
+<option value="9/08/2015">9/08/2015</option>
+<option value="11/01/2015">11/01/2015</option>
+<option value="6/12/2015">6/12/2015</option>
+<option value="22/02/2015">22/02/2015</option>
+<option value="28/06/2015">28/06/2015</option>
+<option value="18/12/2016">18/12/2016</option>
+<option value="1/02/2015">1/02/2015</option>
+<option value="4/01/2015">4/01/2015</option>
+<option value="24/04/2016">24/04/2016</option>
+<option value="18/10/2015">18/10/2015</option>
+<option value="17/07/2016">17/07/2016</option>
+<option value="1/03/2015">1/03/2015</option>
+<option value="12/04/2015">12/04/2015</option>
+<option value="21/02/2016">21/02/2016</option>
+<option value="13/12/2015">13/12/2015</option>
+<option value="23/10/2016">23/10/2016</option>
+<option value="11/09/2016">11/09/2016</option>
+<option value="5/06/2016">5/06/2016</option>
+<option value="16/08/2015">16/08/2015</option>
+<option value="8/05/2016">8/05/2016</option>
+<option value="29/11/2015">29/11/2015</option>
+<option value="22/03/2015">22/03/2015</option>
+<option value="3/01/2016">3/01/2016</option>
+<option value="30/08/2015">30/08/2015</option>
+<option value="26/04/2015">26/04/2015</option>
+<option value="13/11/2016">13/11/2016</option>
+<option value="22/05/2016">22/05/2016</option>
+<option value="2/08/2015">2/08/2015</option>
+<option value="28/02/2016">28/02/2016</option>
+<option value="7/02/2016">7/02/2016</option>
+<option value="26/06/2016">26/06/2016</option>
+<option value="17/01/2016">17/01/2016</option>
+<option value="15/11/2015">15/11/2015</option>
+<option value="15/02/2015">15/02/2015</option>
+<option value="21/08/2016">21/08/2016</option>
+<option value="17/04/2016">17/04/2016</option>
+<option value="5/04/2015">5/04/2015</option>
+<option value="13/03/2016">13/03/2016</option>
+<option value="7/08/2016">7/08/2016</option>
+<option value="14/06/2015">14/06/2015</option>
+<option value="11/12/2016">11/12/2016</option>
+<option value="21/06/2015">21/06/2015</option>
+<option value="10/05/2015">10/05/2015</option>
+<option value="24/01/2016">24/01/2016</option>
+<option value="18/01/2015">18/01/2015</option>
+<option value="25/10/2015">25/10/2015</option>
+<option value="11/10/2015">11/10/2015</option>
+<option value="27/09/2015">27/09/2015</option>
+<option value="10/07/2016">10/07/2016</option>
+<option value="5/07/2015">5/07/2015</option>
+<option value="8/11/2015">8/11/2015</option>
+<option value="1/11/2015">1/11/2015</option>
+<option value="10/01/2016">10/01/2016</option>
+<option value="25/12/2016">25/12/2016</option>
+<option value="6/11/2016">6/11/2016</option>
+<option value="27/11/2016">27/11/2016</option>
+<option value="7/06/2015">7/06/2015</option>
+<option value="27/03/2016">27/03/2016</option>
+<option value="23/08/2015">23/08/2015</option>
+<option value="24/05/2015">24/05/2015</option>
+<option value="15/03/2015">15/03/2015</option>
+<option value="26/07/2015">26/07/2015</option>
+<option value="3/05/2015">3/05/2015</option>
+<option value="24/07/2016">24/07/2016</option>
+<option value="3/07/2016">3/07/2016</option>
+<option value="6/03/2016">6/03/2016</option>
+<option value="27/12/2015">27/12/2015</option>
+<option value="4/09/2016">4/09/2016</option>
+<option value="31/01/2016">31/01/2016</option>
+<option value="1/05/2016">1/05/2016</option>
+<option value="29/03/2015">29/03/2015</option>
+
+            </select>
+            <div style="height:780px;width:100%;overflow:scroll">
+                <img id="Shelf"/>
+            </div>
+        </div>
+        <div class="col-md-2 col-lg-2">
+            <div class="panel panel-default">
+              <div class="panel-heading" style="background-color: orangered;color:white;" align="center">
+                <h3 class="panel-title"  >Notifications</h3>
+                </div>
+                <div class="panel-body">
+
+                    <div class="alert alert-success">
+                      <strong class="default"><i class="fa fa-user"></i> John</strong> sent you friend request.
+                      <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                    </div>
+                    <div class="alert alert-danger">
+                      <strong class="default"><i class="fa fa-envelope-o"></i> Downtown</strong> store selling Budweiser at 10% higher rates.
+                      <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                    </div>
+                    <div class="alert alert-warning">
+                      <strong class="default"><i class="fa fa-hdd-o"></i> Competitor X, </strong> has rolled out promotional offers.
+                      <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                    </div>
+              </div>
+            </div>
+            <div class="panel panel-default">
+              <div class="panel-heading" style="background-color: orangered;color:white;" align="center">
+                <h3 class="panel-title">Mislabelling</h3>
+                </div>
+                <div class="panel panel-primary">
+
+              <div class="panel-body">
+                  <table id="ana_table" border>
+                      <tr>
+                          <th>Actual Brand</th>
+                          <th>Actual Quantity</th>
+                          <th>Found Label</th>
+                          <th>Found Quantity</th>
+                      </tr>
+                  </table>
+              </div>
+              </div>
+            </div>
+        </div>
+
+    </div>
+    <li id="temp" style="display:none">
+        item = <select name="choice">
+  <option value="Volvo" default>Budweiser</option>
+  <option value="Saab">Hoegaarden</option></select> <select name="choice">
+  <option value="and" default>and</option>
+  <option value="or">or</option></select> Cost Difference <select name="choice">
+  <option value="<" default>&lt;</option>
+  <option value="<=" default>&le;</option>
+    <option value=">" default>&gt;</option>
+    <option value=">=" default>&ge;</option></select><input type="choice"/>
+        <button type="button" class="btn btn-default btn-circle" onclick="add(event)"><span class="glyphicon glyphicon-ok"></span></button>
+        <button type="button" class="btn btn-default btn-circle" onclick="ignore(event)"><span class="glyphicon glyphicon-remove"></span></button>
+    </li>
+</body>
+</html>

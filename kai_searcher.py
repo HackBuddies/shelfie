@@ -38,10 +38,10 @@ def get_heights(lines):
     return heights
 
 
-def get_matches(big_file_path, label_path, threshold=0.28):
+def get_matches(big_file_path, label_path, threshold=0.28, gray=True):
     img_rgb = cv2.imread(big_file_path)
     label_template = cv2.imread(label_path)
-    return get_matches_rgb(img_rgb, label_template, threshold)
+    return get_matches_rgb(img_rgb, label_template, threshold, gray)
 
 
 def get_matches_rgb(img_rgb, img_template, threshold=0.28, gray=True):
@@ -71,12 +71,12 @@ def get_matches_rgb(img_rgb, img_template, threshold=0.28, gray=True):
 
     ctr = 0
     for pt in real_pts:
-        # cv2.rectangle(img_rgb, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+        cv2.rectangle(img_rgb, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
         segment_img = img_rgb[pt[1]:pt[1] + h, pt[0]:pt[0] + w]
         cv2.imwrite('labels/' + "%03d.jpg" % ctr, segment_img)
         ctr += 1
 
-    # cv2.imwrite('res/' + big_file_path, img_rgb)
+        cv2.imwrite('b.jpg', img_rgb)
 
     return real_pts
 
@@ -136,13 +136,13 @@ def get_horizontal_lines(real_pts, label_height, label_width, big_img_width):
     return lines
 
 
-def get_segment_rects_labels(test_fname, label_fname):
+def get_segment_rects_labels(test_fname, label_fname, threshold=0.28):
     img_rgb = cv2.imread(test_fname)
 
     template = cv2.imread(label_fname, 0)
     label_w, label_h = template.shape[::-1]
     _, big_w, big_h = img_rgb.shape[::-1]
-    real_pts = get_matches(test_fname, label_fname)
+    real_pts = get_matches(test_fname, label_fname, threshold)
     lines = get_horizontal_lines(real_pts, label_h, label_w, big_w)
     heights = get_heights(lines)
     heights = heights[::-1]
@@ -161,14 +161,14 @@ def get_segment_rects_labels(test_fname, label_fname):
                     upper_limit = height
                     break
             result.append(([(left_border, upper_limit), (right_border, bottom_limit)],
-                           [(mid_pt[0], mid_pt[1]-label_h), (mid_pt[0] + label_w, mid_pt[1])]))
+                           [(mid_pt[0], mid_pt[1] - label_h), (mid_pt[0] + label_w, mid_pt[1])]))
 
     return result
 
 
-def get_segmented_images_and_labels(test_fname, label_fname):
+def get_segmented_images_and_labels(test_fname, label_fname, threshold=0.28):
     img_rgb = cv2.imread(test_fname)
-    rect_labels = get_segment_rects_labels(test_fname, label_fname)
+    rect_labels = get_segment_rects_labels(test_fname, label_fname, threshold)
     imgs = []
     for rectangle, label in rect_labels:
         segment_img = img_rgb[rectangle[0][1]:rectangle[1][1], rectangle[0][0]:rectangle[1][0]]
@@ -238,7 +238,10 @@ def test_labelling_accuracy():
 
 
 def main():
-    print(get_matches("split/0/Supermarket_2015-01-1817.jpg", "split/0/Supermarket_2016-12-2516.jpg", threshold=0.8))
+    ctr = 0
+    for img, label in get_segmented_images_and_labels("berr.jpg", "images/label/label2.jpg", threshold=0.4):
+        cv2.imwrite("beer/%03d.jpg" % ctr, img)
+        ctr += 1
 
 
 if __name__ == '__main__':

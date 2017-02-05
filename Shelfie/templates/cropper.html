@@ -1,0 +1,84 @@
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="static/css/bootstrap.min.css" rel="stylesheet" media="screen">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Cropper.js</title>
+  <link rel="stylesheet" href="/static/cropper.css">
+  <style>
+    .container {
+      max-width: 640px;
+      margin: 20px auto;
+    }
+
+    img {
+      width: 100%;
+    }
+  </style>
+    <style>
+    body {
+        background-repeat: no-repeat;
+        background-size: 100%;
+    }
+
+</style>
+</head>
+<body background="{{ url_for('static',filename='bg.png') }}">
+
+  <div class="container">
+      <div>
+          <div align="left" class="col-md-1" style="float: left">
+              <img src="{{ url_for("static",filename="images/back.png") }}" style="height: 100px;width: 100px;position: fixed;left: 10px;top:0px" alt="Picture">
+          </div>
+          <div align="center" class="col-md-11">
+              <img src="{{ url_for("static",filename="images/shelfielogo.png") }}" style="height: 150px;width: 150px;" alt="Picture">
+          </div>
+      </div>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
+    <div>
+      <img id="image" src="{{ url_for("static",filename="images/im2.jpg") }}" alt="Picture" style="height: 400px;width:400px;">
+    </div>
+      <br>
+      <br>
+      <div align="center">
+          <form method="post" action="{{ url_for("home") }}" onsubmit="pop()">
+            <input type="submit" value="Let's get started" class="btn btn-danger" />
+            <input type="text" style="display: none" name="params" id="param_id" />
+
+          </form>
+      </div>
+  </div>
+
+  <script src="{{ url_for("static",filename="cropper.js") }}"></script>
+  <script>
+      function pop() {
+          var cropped = cropper.getData();
+          console.log(cropped);
+          x = cropped.x;
+          y = cropped.y;
+          w = cropped.width;
+          h = cropped.height;
+
+          document.getElementById("param_id").value = x+";"+y+";"+w+";"+h;
+      }
+    window.addEventListener('DOMContentLoaded', function () {
+      image = document.querySelector('#image');
+       cropper = new Cropper(image, {
+        movable: false,
+        zoomable: false,
+        rotatable: false,
+        scalable: false
+      });
+
+    });
+  </script>
+</body>
+</html>
